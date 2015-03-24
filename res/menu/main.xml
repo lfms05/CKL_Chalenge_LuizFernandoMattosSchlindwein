@@ -1,0 +1,32 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.lfms.ckl.MainActivity" 
+    android:title="@string/action_settings" >
+    
+    <item
+        android:id="@+id/sortByTitle"
+        android:orderInCategory="100"
+        android:title="Sort by Title"/>
+    
+    <item
+        android:id="@+id/sortByAuthors"
+        android:orderInCategory="100"
+        android:title="Sort by Authors"/>
+    
+    <item
+        android:id="@+id/sortByNewest"
+        android:orderInCategory="100"
+        android:title="Sort by Newest"/>
+    
+    <item
+        android:id="@+id/sortByOldest"
+        android:orderInCategory="100"
+        android:title="Sort by Oldest"/>
+    
+    <item
+        android:id="@+id/sortByWebsite"
+        android:orderInCategory="100"
+        android:title="Sort by Website"/>
+
+</menu>

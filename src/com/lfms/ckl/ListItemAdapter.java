@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -23,6 +24,15 @@ public class ListItemAdapter extends ArrayAdapter<Article> {
 	private final Context context;
 	private final List<Article> articleList;
 	private TextView textView;
+	
+	static class ViewHolder {
+		TextView title;
+		TextView authors;
+		TextView website;
+		TextView date;
+		ImageView image;
+		CheckBox seen;
+	}
 	    
     public ListItemAdapter(Context context, List<Article> articleList, TextView textView) {
     	super(context, R.layout.list_item, articleList);
@@ -42,53 +52,33 @@ public class ListItemAdapter extends ArrayAdapter<Article> {
     	final String content = article.content;
     	final boolean isSeen = article.isSeen;
     	
+    	ViewHolder holder;
+    	
+    	//set up the view holder
+    	if(convertView == null)
+    	{
+    		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    		convertView = inflater.inflate(R.layout.list_item, parent, false);
+    		
+    		holder = new ViewHolder();
+    		holder.title = (TextView) convertView.findViewById(R.id.title);
+    		holder.authors = (TextView) convertView.findViewById(R.id.authors);
+    		holder.date = (TextView) convertView.findViewById(R.id.date);
+    		holder.website = (TextView) convertView.findViewById(R.id.website);
+    		holder.image = (ImageView) convertView.findViewById(R.id.image);
+    		holder.seen = (CheckBox) convertView.findViewById(R.id.seen);
+    		convertView.setTag(holder);
+    	} else {
+    		holder = (ViewHolder) convertView.getTag();
+    	}
+    	
     	//set the strings of each list item
-    	LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		convertView = inflater.inflate(R.layout.list_item, parent, false);
-		((TextView) convertView.findViewById(R.id.title)).setText(title);
-		((TextView) convertView.findViewById(R.id.authors)).setText(String.format(context.getString(R.string.authors), authors));
-		((TextView) convertView.findViewById(R.id.date)).setText(String.format(context.getString(R.string.date), date));
-		((TextView) convertView.findViewById(R.id.website)).setText(String.format(context.getString(R.string.website), website));
-		((CheckBox) convertView.findViewById(R.id.seen)).setChecked(isSeen);
+    	holder.title.setText(title);
+		holder.authors.setText(String.format(context.getString(R.string.authors), authors));
+		holder.date.setText(String.format(context.getString(R.string.date), date));
+		holder.website.setText(String.format(context.getString(R.string.website), website));
+		holder.seen.setChecked(isSeen);
 		
-		// View's click listener
-		//Opens article content
-		convertView.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				//set seen to true
-				article.isSeen = true;
-				((CheckBox) v.findViewById(R.id.seen)).setChecked(article.isSeen);
-				
-				if(textView != null)
-				{
-					textView.setText(content);
-				} else {
-					// Starting article content activity
-					Intent in = new Intent(context, ArticleContentActivity.class);
-					in.putExtra(MainActivity.TAG_TITLE, title);
-					in.putExtra(MainActivity.TAG_AUTHORS, authors);
-					in.putExtra(MainActivity.TAG_DATE, date);
-					in.putExtra(MainActivity.TAG_WEBSITE, website);
-					in.putExtra(MainActivity.TAG_CONTENT, content);
-					context.startActivity(in);
-				}
-			}
-		});
-		
-		// View's long click listener
-		//Set article as unseen
-		convertView.setOnLongClickListener(new OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View v) {
-				//set seen to false
-				article.isSeen = false;
-				((CheckBox)v.findViewById(R.id.seen)).setChecked(article.isSeen);
-				return true;
-			}
-		});
-	
 		return convertView;
     }
 }

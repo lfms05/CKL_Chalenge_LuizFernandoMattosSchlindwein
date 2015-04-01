@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:background="@color/semi_transparent_dark" >
+    android:background="@color/semi_transparent_dark"
+    android:focusable="false" >
 
     <ImageView
         android:id="@+id/image"
@@ -12,6 +13,7 @@
         android:layout_alignParentTop="true"
         android:layout_margin="5dp"
         android:clickable="false"
+        android:focusable="false"
         android:src="@drawable/no_image_available" />
 
     <CheckBox
@@ -22,6 +24,7 @@
         android:layout_centerVertical="true"
         android:layout_marginRight="2dp"
         android:clickable="false"
+        android:focusable="false"
         android:gravity="center"
         android:text="seen" />
     
@@ -34,6 +37,7 @@
         android:layout_margin="5dp"
         android:layout_toRightOf="@+id/image"
         android:clickable="false"
+        android:focusable="false"
         android:gravity="center_vertical"
         android:maxLines="1"
         android:text="Title"
@@ -48,6 +52,7 @@
         android:layout_marginRight="5dp"
         android:layout_toLeftOf="@+id/seen"
         android:clickable="false"
+        android:focusable="false"
         android:orientation="vertical" >
 
         <TextView
@@ -55,6 +60,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="false"
+            android:focusable="false"
             android:text="Authors: "
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -63,6 +69,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="false"
+            android:focusable="false"
             android:text="Date: "
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -71,6 +78,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="false"
+            android:focusable="false"
             android:text="Website: "
             android:textAppearance="?android:attr/textAppearanceMedium" />
 

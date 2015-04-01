@@ -9,6 +9,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.ion.Ion;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -19,6 +26,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -41,9 +50,6 @@ public class MainActivity extends Activity {
 	public static final String TAG_DATE = "date";
 	public static final String TAG_WEBSITE = "website";
 	public static final String TAG_CONTENT = "content";
-	
-	// contacts JSONArray
-	JSONArray articles = null;
 
 	// List of articles
 	List<Article> articleList;
@@ -64,81 +70,98 @@ public class MainActivity extends Activity {
 		listView = (ListView) findViewById(R.id.list);
 		textView = (TextView) findViewById(R.id.contentMainView);
 		
-		// Calling async task to get json
-		new GetContacts().execute();
+		// ListView's item click listener
+		//Opens article content
+		listView.setOnItemClickListener(new OnItemClickListener() {
+			
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				
+				final Article article = articleList.get(position);
+		    	final String title = article.title;
+		    	final String authors = article.authors;
+		    	final String date = article.date.toString();
+		    	final String website = article.website;
+		    	final String content = article.content;
+		    	final boolean isSeen = article.isSeen;
+				
+		    	//set seen to true
+		    	article.isSeen = true;
+				((CheckBox) view.findViewById(R.id.seen)).setChecked(true);
+				
+				//in case text view is not null then it is a tablet
+				if(textView != null)
+				{
+					textView.setText(content);
+				} else {
+					// Starting article content activity
+					Intent in = new Intent(MainActivity.this, ArticleContentActivity.class);
+					in.putExtra(TAG_TITLE, title);
+					in.putExtra(TAG_AUTHORS, authors);
+					in.putExtra(TAG_DATE, date);
+					in.putExtra(TAG_WEBSITE, website);
+					in.putExtra(TAG_CONTENT, content);
+					MainActivity.this.startActivity(in);
+				}
+			}
+		});
+		
+		//  ListView's item long click listener
+		//Set article as unseen
+		listView.setOnItemLongClickListener(new OnItemLongClickListener() {
+			
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				
+				//set seen to false
+				articleList.get(position).isSeen = false;
+				((CheckBox)view.findViewById(R.id.seen)).setChecked(false);
+				return true;
+			}
+		});
+		
+		//Showing progress dialog
+		pDialog = new ProgressDialog(MainActivity.this);
+		pDialog.setMessage("Fetching Articles...");
+		pDialog.setCancelable(false);
+		pDialog.show();
+		
+		//getting the json using ion and gson
+		Ion.with(this).load(url).asJsonArray().setCallback(new FutureCallback<JsonArray>() {
+		   @Override
+		    public void onCompleted(Exception e, JsonArray result) {
+		       // do stuff with the result or error
+			   
+			   // Dismiss the progress dialog
+			   if (pDialog.isShowing())
+					pDialog.dismiss();
+			   
+			   // looping through All articles
+			   for (int i = 0; i < result.size(); i++) {
+				   JsonObject jsonObject = result.get(i).getAsJsonObject();
+					
+					String title = jsonObject.get(TAG_TITLE).getAsString();
+					String authors = jsonObject.get(TAG_AUTHORS).getAsString();
+					String website = jsonObject.get(TAG_WEBSITE).getAsString();
+					String content = jsonObject.get(TAG_CONTENT).getAsString();
+					String date = jsonObject.get(TAG_DATE).getAsString();
+
+					Article article = new Article(title, authors, date, website, content, "");
+				
+					// adding article to article list
+					articleList.add(article);
+				}
+			
+				/**
+				 * Updating parsed JSON data into ListView
+				 * */
+				ListAdapter adapter = new ListItemAdapter(MainActivity.this, articleList, textView);
+				listView.setAdapter(adapter);
+		    }
+		});
 	}
 	
-	/**
-	 * Async task class to get json by making HTTP call
-	 * */
-	private class GetContacts extends AsyncTask<Void, Void, Void> {
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			// Showing progress dialog
-			pDialog = new ProgressDialog(MainActivity.this);
-			pDialog.setMessage("Fetching Articles...");
-			pDialog.setCancelable(false);
-			pDialog.show();
-
-		}
-
-		@Override
-		protected Void doInBackground(Void... arg0) {
-			// Creating service handler class instance
-			ServiceHandler sh = new ServiceHandler();
-
-			// Making a request to url and getting response
-			String jsonStr = sh.makeServiceCall(url, ServiceHandler.GET);
-
-			Log.d("Response: ", "> " + jsonStr);
-
-			if (jsonStr != null) {
-				try {
-					// Getting JSON Array node
-					articles = new JSONArray(jsonStr);
-
-					// looping through All Contacts
-					for (int i = 0; i < articles.length(); i++) {
-						JSONObject jsonArticle = articles.getJSONObject(i);
-						
-						String title = jsonArticle.getString(TAG_TITLE);
-						String authors = jsonArticle.getString(TAG_AUTHORS);
-						String website = jsonArticle.getString(TAG_WEBSITE);
-						String content = jsonArticle.getString(TAG_CONTENT);
-						String date = jsonArticle.getString(TAG_DATE);
-
-						Article article = new Article(title, authors, date, website, content, "");
-					
-						// adding article to article list
-						articleList.add(article);
-					}
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-			} else {
-				Log.e("ServiceHandler", "Couldn't get any data from the url");
-			}
-
-			return null;
-		}
-
-		@Override
-		protected void onPostExecute(Void result) {
-			super.onPostExecute(result);
-			// Dismiss the progress dialog
-			if (pDialog.isShowing())
-				pDialog.dismiss();
-			/**
-			 * Updating parsed JSON data into ListView
-			 * */
-			ListAdapter adapter = new ListItemAdapter(MainActivity.this, articleList, textView);
-			listView.setAdapter(adapter);
-		}
-		
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
